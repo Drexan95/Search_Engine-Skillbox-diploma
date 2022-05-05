@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/MoscowMetroParser.iml" filepath="$PROJECT_DIR$/MoscowMetroParser.iml" />
-      <module fileurl="file://$PROJECT_DIR$/target/spb-metro.iml" filepath="$PROJECT_DIR$/target/spb-metro.iml" />
-    </modules>
-  </component>
-</project>

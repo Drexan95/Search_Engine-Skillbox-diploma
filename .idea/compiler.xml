@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Search_Engine" />
+        <module name="Search_Engine-Skillbox-diploma-main" />
       </profile>
     </annotationProcessing>
   </component>

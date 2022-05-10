@@ -37,15 +37,15 @@
                     <executions>
                         <execution>
                             <goals>
-                                <goal>build-info</goal>
+                                <goal>repackage</goal>
                             </goals>
                             <configuration>
-                                <additionalProperties>
-                                    <encoding.source>${project.build.sourceEncoding}</encoding.source>
-                                    <encoding.reporting>${project.reporting.outputEncoding}</encoding.reporting>
-                                    <java.source>${maven.compiler.source}</java.source>
-                                    <java.target>${maven.compiler.target}</java.target>
-                                </additionalProperties>
+<!--                                <additionalProperties>-->
+<!--                                    <encoding.source>${project.build.sourceEncoding}</encoding.source>-->
+<!--                                    <encoding.reporting>${project.reporting.outputEncoding}</encoding.reporting>-->
+<!--                                    <java.source>${maven.compiler.source}</java.source>-->
+<!--                                    <java.target>${maven.compiler.target}</java.target>-->
+<!--                                </additionalProperties>-->
                             </configuration>
                         </execution>
                     </executions>

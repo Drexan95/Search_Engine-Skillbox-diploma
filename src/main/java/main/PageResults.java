@@ -38,10 +38,11 @@ public class PageResults {
     private SiteRepository siteRepository;
     @Getter
     private long maxResults;
-
+    final int RESULTS_TO_SHOW = 20;
 
 
     private List<Lemma> getLemms(SearchRequest request) throws IOException {
+        maxResults=0;
         try {
             Lem.createMorph();
             statement = DBConnection.getConnection().createStatement();
@@ -68,7 +69,6 @@ public class PageResults {
             }
         });
         Collections.sort(frequencyLemms);
-
         return frequencyLemms;
     }
 
@@ -102,7 +102,6 @@ public class PageResults {
 
         }
 
-        //=====================================================================================================================
         else {
             ResultSet result = statement.executeQuery("SELECT COUNT(id) as page_count  FROM page");
             while (result.next()) {
@@ -110,17 +109,17 @@ public class PageResults {
             }
         }
 
+        //=====================================================================================================================
 /**
  * Find pages where lemma appears
  *
  */
-        String query = "SELECT page.id FROM search_engine.page  JOIN search_index ON page.id = search_index.page_id JOIN lemma ON lemma.id = search_index.lemma_id " +
+        String query = "SELECT page.id FROM page  JOIN search_index ON page.id = search_index.page_id JOIN lemma ON lemma.id = search_index.lemma_id " +
                 "WHERE lemma_id = ?";
         if (siteId.get() != 0) {
             query = query + " AND page.site_id =" + siteId.get();
         }
         PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(query);
-
         frequencyLemms.forEach(lemma -> {
             try {
                 preparedStatement.setInt(1, lemma.getId());
@@ -128,31 +127,28 @@ public class PageResults {
                 while (resultSet.next()) {
                     int id = resultSet.getInt("page.id");
                     Optional<Page> page = pageRepository.findById(id);
-                    if (page.isPresent() && !page.get().getLemms().contains(lemma.getName())) {
-                        lemma.getUrls().add(page.get());
-                    }
+                    page.ifPresent(value -> lemma.getUrls().add(value));
+
                 }
             } catch (SQLException exception) {
                 exception.printStackTrace();
             }
         });
 
-        int finalPageCount = pageCount;  //Don't consider lemma if it appears in more than 40% of the pages
+        int finalPageCount = pageCount;  //Don't consider lemma if it appears in more than 80% of the pages
         try {
-            frequencyLemms.removeIf(lemma ->lemma.getUrls().size()!=0 && 100 / (finalPageCount / lemma.getUrls().size()) > 40 && frequencyLemms.size() > 1);
-            if (frequencyLemms.size() == 1) {
-                final int RESULTS_TO_SHOW = 20;
-                frequencyLemms.get(0).setUrls(frequencyLemms.get(0).getUrls().stream().limit(RESULTS_TO_SHOW).collect(Collectors.toList()));
-            }
-            frequencyLemms.stream().sorted().skip(1)
-                    .forEach(lemma -> lemma.getUrls().subList(lemma.getUrls().size() - (int) ((lemma.getUrls().size() * 10L) / 100), lemma.getUrls().size()).clear()
-                    );//Decrease number of pages for each lemma by 10%
+            frequencyLemms.removeIf(lemma -> frequencyLemms.size() > 1 && 100 / (finalPageCount / lemma.getUrls().size()) > 80 && frequencyLemms.indexOf(lemma) > 0);
 
+            if (frequencyLemms.size() > 1) {
+                frequencyLemms.stream().sorted().skip(1)
+                        .forEach(lemma -> lemma.getUrls().subList(lemma.getUrls().size() - (int) ((lemma.getUrls().size() * 10L) / 100), lemma.getUrls().size()).clear()
+                        );
+            }//Decrease number of pages for each lemma by 10%
         } catch (ArithmeticException ae) {
             ae.printStackTrace();
         }
 
-
+        System.out.println("кол-во слов "+frequencyLemms.size());
         return frequencyLemms;
     }
 
@@ -204,8 +200,10 @@ public class PageResults {
         pageAndRelevancy.keySet().forEach(page -> {
             page.setRelevance(page.getAbsRelevancy() / Collections.max(pageAndRelevancy.values()));
             sortedPages.add(page);
-        });
 
+        });
+        maxResults = sortedPages.size();
+        System.out.println("кол-во страниц "+sortedPages.size());
         return StreamEx.of(sortedPages).distinct(Page::getPath).sorted().toList();
     }
 
@@ -214,7 +212,6 @@ public class PageResults {
     @Transactional
     public List<Page> getResults(SearchRequest request) {
 
-        long start = System.currentTimeMillis();
         StringBuilder builder = new StringBuilder();
         List<Page> results = new ArrayList<>();
         try {
@@ -266,18 +263,17 @@ public class PageResults {
                 page.setSnippet(snippet);
                 builder.setLength(0);
                 results.add(page);
-                maxResults = results.size();
+//                maxResults = results.size();
 
             });
         } catch (SQLException | IOException ex) {
             ex.printStackTrace();
         }
-        if (request.getLimit() > 0) {
-
+        if (request.getLimit() !=0) {
             return results.stream().skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
-        } else {
-            System.out.println(System.currentTimeMillis() - start);
-            return results.stream().skip(request.getOffset()).collect(Collectors.toList()); //Page results containing calculated relevancy
+        }
+        else {
+            return results.stream().skip(request.getOffset()).limit(RESULTS_TO_SHOW).collect(Collectors.toList()); //Page results containing calculated relevancy
         }
     }
 

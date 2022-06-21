@@ -1,52 +1,62 @@
 spring:
- datasource:
-#   driver-class-name: com.mysql.cj.jdbc.Driver
-   url: jdbc:mysql://localhost:3306/search_engine?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Tomsk&allowPublicKeyRetrieval=true&useSSL=false
+  datasource:
+    #   driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://drexan96.beget.tech:3306/drexan96_skillbx?user=drexan96_skillbx&password=ynzohwtd101!?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Europe/Moscow&allowPublicKeyRetrieval=true&useSSL=false&rewriteBatchedStatements=true
 
 ---
 spring:
- datasource:
-  username: root
+  datasource:
+    username: drexan96_skillbx
 ---
 spring:
- datasource:
-  password: ynzohwtd101
+  datasource:
+    password: ynzohwtd101!
 ---
 spring:
-      jpa:
-        properties:
-          hibernate:
-            format_sql: true
+  datasource:
+    hikari:
+      connectionTimeout: 200000
 ---
 spring:
- jpa:
-   hibernate:
-    ddl-auto: update
+  datasource:
+    hikari:
+      maximumPoolsize: 5
 ---
 spring:
- jpa:
-  database-platform: org.hibernate.dialect.MySQL5Dialect
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
 ---
 spring:
- jpa:
-  properties:
-   hibernate:
-    globally_quoted_identifiers: true
+  jpa:
+    hibernate:
+      ddl-auto: update
 ---
-#spring:
-# datasource:
-#  driver-class-name: com.mysql.cj.jdbc.Driver
+spring:
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+---
+spring:
+  jpa:
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+---
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
 ---
 server:
- port: 8080
+  port: ${PORT:8080}
 ---
 server:
   servlet:
     contextPath: /
 prefix: search_engine.
 sites :
-    url: http://www.playback.ru, http://radiomv.ru
-    name: Плейбек.ру, Милицейская Волна
+  url: http://www.playback.ru, http://radiomv.ru
+  name: Плейбек.ру, Милицейская Волна
 
 fieldweight: 1,0.8f,0.6f,0.4f
 

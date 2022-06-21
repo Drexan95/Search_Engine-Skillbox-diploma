@@ -1,1 +1,2 @@
-web: java -jar target/Search_Engine-1.0.jar
+web: java -Dserver.port=$PORT -jar target/Search_Engine-1.0.jar
+-Dspring.datasource.url=jdbc:mysql://drexan96.beget.tech:3306/drexan96_skillbx?user=drexan96_skillbx&password=ynzohwtd101!?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Europe/Moscow&allowPublicKeyRetrieval=true&useSSL=false&rewriteBatchedStatements=true

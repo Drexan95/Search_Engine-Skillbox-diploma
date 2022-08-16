@@ -93,7 +93,7 @@ public class IndexingCommands {
             tasks.add(collector);
         }
 
-//        siteRepository.saveAll(sites);
+
 
     }
 

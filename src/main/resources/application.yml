@@ -1,16 +1,16 @@
 spring:
   datasource:
     #   driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://drexan96.beget.tech:3306/drexan96_skillbx?user=drexan96_skillbx&password=ynzohwtd101!?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Europe/Moscow&allowPublicKeyRetrieval=true&useSSL=false&rewriteBatchedStatements=true
+    url: jdbc:mysql://localhost:3306/search_engine?user=root&password=ynzohwtd101!useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Europe/Moscow&allowPublicKeyRetrieval=true&useSSL=false&rewriteBatchedStatements=true
 
 ---
 spring:
   datasource:
-    username: drexan96_skillbx
+    username: root
 ---
 spring:
   datasource:
-    password: ynzohwtd101!
+    password: ynzohwtd101
 ---
 spring:
   datasource:
@@ -20,7 +20,12 @@ spring:
 spring:
   datasource:
     hikari:
-      maximumPoolsize: 5
+      maximumPoolsize: 10
+---
+      spring:
+        datasource:
+          hikari:
+            idleTimeout: 600000
 ---
 spring:
   jpa:

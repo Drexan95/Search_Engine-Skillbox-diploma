@@ -24,7 +24,6 @@ public class HTMLDataFilter {
         HTMLDataFilter.fieldWeights = weights;
     }
 
-
     public static String findText(String text) {
         StringBuilder result = new StringBuilder();
         Pattern pattern = Pattern.compile("[а-яёА-ЯЁ]+");
@@ -32,9 +31,9 @@ public class HTMLDataFilter {
         while (m.find()) {
             result.append(" ").append(m.group());
         }
-
         return result.toString();
     }
+
     protected   static  boolean skip(String url,String root)
     {
         if (url.contains("#") || url.contains("?")||url.trim().length() == 0||url.equalsIgnoreCase(root)||!isSupportedType(url)) {

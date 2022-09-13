@@ -219,6 +219,7 @@ public class PageResults {
                 Optional<Site> site = siteRepository.findById(page.getSiteid());
                 page.setSiteName(site.get().getName());
                 page.setSite(site.get().getUrl());
+                page.setUri(page.getPath());
                 String content = page.getContent();
                 Pattern patternTitle = Pattern.compile("<title>(.+?)</title>", Pattern.DOTALL);
                 Matcher m = patternTitle.matcher(content);
@@ -227,44 +228,42 @@ public class PageResults {
                 }
                 HashMap<String, String> wordAndLemma = null;
                 content = HTMLDataFilter.findText(content);
-                int contentLentgh = content.length();
+//                int contentLentgh = content.length();
                 String finalContent = content;
                 try {
                     wordAndLemma = Lem.replaceForLemms(content);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
                 for (String lemma : page.getLemms()) {
-
-                    Pattern pattern = Pattern.compile(wordAndLemma.get(lemma));
-                    Matcher matcher = pattern.matcher(finalContent.toLowerCase(Locale.ROOT));
-                    int lemmIndex = 0;
-                    int lastLemmIndex = 0;
-                    int textBorder = 0;
-                    while (matcher.find()) {
-                        lemmIndex = matcher.start();
-                        lastLemmIndex = matcher.end();
-                        textBorder = contentLentgh - lastLemmIndex;
-                    }
-
-                    int numberOfChars = 100;
-                    if (textBorder > numberOfChars) {
-                        String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
-                        builder.append("...<b>").append(word)
-                                .append(finalContent, lastLemmIndex, lastLemmIndex + numberOfChars).append("...\n");
-                    } else { String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
-                        builder.append("...<b>").append(word)
-                                .append(finalContent, lastLemmIndex, contentLentgh).append("...\n");
-                    }
-
+                    String wordFromLemma = wordAndLemma.get(lemma);
+//                    Pattern pattern = Pattern.compile(wordAndLemma.get(lemma));
+//                    Matcher matcher = pattern.matcher(finalContent.toLowerCase(Locale.ROOT));
+//                    int lemmIndex = 0;
+//                    int lastLemmIndex = 0;
+//                    int textBorder = 0;
+//                    while (matcher.find()) {
+//                        lemmIndex = matcher.start();
+//                        lastLemmIndex = matcher.end();
+//                        textBorder = contentLentgh - lastLemmIndex;
+//                    }
+//
+//                    int numberOfChars = 100;
+//                    if (textBorder > numberOfChars) {
+//                        String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
+//                        builder.append("...<b>").append(word)
+//                                .append(finalContent, lastLemmIndex, lastLemmIndex + numberOfChars).append("...\n");
+//                    }
+//                    else { String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
+//                        builder.append("...<b>").append(word)
+//                                .append(finalContent, lastLemmIndex, contentLentgh).append("...\n");
+//                    }
+                    page.setSnippet(getSnippet(builder,finalContent,wordFromLemma));
                 }
-                String snippet = builder.toString();
-                page.setSnippet(snippet);
+
+
                 builder.setLength(0);
                 results.add(page);
-//                maxResults = results.size();
-
             });
         } catch (SQLException | IOException ex) {
             ex.printStackTrace();
@@ -278,6 +277,35 @@ public class PageResults {
     }
 
 //==============================================================================================================================================================
+ private String getSnippet(StringBuilder builder, String finalContent,String wordFromLemma){
+     Pattern pattern = Pattern.compile(wordFromLemma);
+     Matcher matcher = pattern.matcher(finalContent.toLowerCase(Locale.ROOT));
+
+     int contentLentgh = finalContent.length();
+     int lemmIndex = 0;
+     int lastLemmIndex = 0;
+     int textBorder = 0;
+     int numberOfChars = 100;
+
+     while (matcher.find()) {
+         lemmIndex = matcher.start();
+         lastLemmIndex = matcher.end();
+         textBorder = contentLentgh - lastLemmIndex;
+     }
+     if (textBorder > numberOfChars) {
+         String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
+         builder.append("...<b>").append(word)
+                 .append(finalContent, lastLemmIndex, lastLemmIndex + numberOfChars).append("...\n");
+     }
+     else { String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
+         builder.append("...<b>").append(word)
+                 .append(finalContent, lastLemmIndex, contentLentgh).append("...\n");
+     }
+
+     return builder.toString();
+ }
 
 
-}
+ }
+
+

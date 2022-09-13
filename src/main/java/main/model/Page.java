@@ -63,7 +63,11 @@ public class Page implements  Comparable<Page>{
     @Transient
     @Getter
     @Setter
-    private List<String> lemms = new ArrayList<>();;
+    private List<String> lemms = new ArrayList<>();
+    @Transient
+    @Getter
+    @Setter
+    private String uri;
 
     public Page(int id, String path,int code,String content) {
         this.id = id;

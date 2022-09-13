@@ -98,7 +98,6 @@ public class IndexingCommands {
     }
 
     void indexing(List<URLCollector> collectors) throws SQLException {
-
         Long start = System.currentTimeMillis();
         collectors.forEach(collector -> {
 
@@ -148,50 +147,54 @@ public class IndexingCommands {
      * @throws IOException
      * @throws JSONException
      */
+
     @Transactional
     public ResponseEntity<String> addPage(@RequestParam(name = "url") String url) throws SQLException, IOException, JSONException
     {
         Iterable<Site> sites = siteRepository.findAll();
         Page page = new Page(url);
-        Site pageSite = new Site();
         JSONObject response = new JSONObject();
-        String pageUrl = page.getPath();
-        System.out.println(page.getPath());
-        page.setPath("");
-        for(Site site : sites){
-            if (pageUrl.startsWith(site.getUrl())) {
-                page.setSiteid(site.getId());
-                page.setSite(site.getUrl());
-                page.setSiteName(site.getName());
-                pageSite.setId(site.getId());
-                pageSite.setUrl(site.getUrl());
-                pageSite.setStatus(site.getStatus());
-                page.setPath(pageUrl);
-            }
-        }
+        Site pageSite = new Site();
+
+//        Site pageSite = new Site();
+//        JSONObject response = new JSONObject();
+//        String pageUrl = page.getPath();
+//        System.out.println(page.getPath());
+//        page.setPath("");
+//        for(Site site : sites){
+//            if (pageUrl.startsWith(site.getUrl())) {
+//                page.setSiteid(site.getId());
+//                page.setSite(site.getUrl());
+//                page.setSiteName(site.getName());
+//                pageSite.setId(site.getId());
+//                pageSite.setUrl(site.getUrl());
+//                pageSite.setStatus(site.getStatus());
+//                page.setPath(pageUrl);
+//            }
+//        }
 
         //==========================================================================================================================================
-        if(page.getPath().equals("")){
+        if(!isSiteIndexed(page,sites,pageSite)){
             try {
 
                 response.put("result", false);
-                response.put("error", "Данная страница находится за пределами сайтов, указанных в конфигурационном файле");
+                response.put("error", "Данная страница находится за пределами сайтов, указанных в конфигурационном файле или индексация сайта еще не завершена");
                 return new ResponseEntity<>(response.toString(),HttpStatus.BAD_REQUEST);
             }
             catch (JSONException ex){
                 ex.printStackTrace();
             }
         }
-        else if(!pageSite.getStatus().equals(StatusType.INDEXED)){
-            try {
-
-                response.put("result", false);
-                response.put("error", "Индексация еще не завершена");
-                return new ResponseEntity<>(response.toString(), HttpStatus.CONFLICT);
-            } catch (JSONException ex){
-                ex.printStackTrace();
-            }
-        }
+//        else if(!pageSite.getStatus().equals(StatusType.INDEXED)){
+//            try {
+//
+//                response.put("result", false);
+//                response.put("error", "Индексация еще не завершена");
+//                return new ResponseEntity<>(response.toString(), HttpStatus.CONFLICT);
+//            } catch (JSONException ex){
+//                ex.printStackTrace();
+//            }
+//        }
         if(page.getPath().equals(pageSite.getUrl())){
             page.setPath(page.getPath()+"/");
         }
@@ -251,6 +254,25 @@ public class IndexingCommands {
                 statement.executeUpdate("ALTER TABLE search_index AUTO_INCREMENT=1");
 
             }
+
+    private boolean isSiteIndexed(Page page, Iterable<Site> sites,Site pageSite){
+
+        String pageUrl = page.getPath();
+        System.out.println(page.getPath());
+        page.setPath("");
+        for(Site site : sites){
+            if (pageUrl.startsWith(site.getUrl())) {
+                page.setSiteid(site.getId());
+                page.setSite(site.getUrl());
+                page.setSiteName(site.getName());
+                pageSite.setId(site.getId());
+                pageSite.setUrl(site.getUrl());
+                pageSite.setStatus(site.getStatus());
+                page.setPath(pageUrl);
+            }
+        }
+        return pageSite.getStatus().equals(StatusType.INDEXED) && !page.getPath().equals("");
+    }
 
     }
 

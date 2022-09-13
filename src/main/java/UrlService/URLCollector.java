@@ -164,7 +164,6 @@ public class URLCollector extends RecursiveTask<Integer> {
                     /**
                      * Fields
                      */
-
                     synchronized (fieldId) {
                         fieldId.getAndIncrement();
                         addField(fieldId.get(), element.tagName(), element.cssSelector(), fieldWeight);
@@ -174,7 +173,6 @@ public class URLCollector extends RecursiveTask<Integer> {
                     collectRanksAndLemmsFromField(finalFieldLems, fieldWeight);
                 }
             }
-
 
             /**
              * Index
@@ -186,13 +184,10 @@ public class URLCollector extends RecursiveTask<Integer> {
                     }
                 });
             }
-
             //======================================================================================//
-
             collectLinks(links);
             forkTasks(urls);
             joinTasks();
-
 
         } catch (IOException | InterruptedException | NullPointerException | SQLException exception) {
             exception.printStackTrace();
@@ -218,7 +213,6 @@ public class URLCollector extends RecursiveTask<Integer> {
 
         }
     }
-
     //==========================================================================================================================================================//
     private void collectRanksAndLemmsFromField(ConcurrentHashMap<String, Integer> fieldLemms, float fieldWeight) {
         fieldLemms.keySet().forEach(lemma -> {
@@ -237,7 +231,6 @@ public class URLCollector extends RecursiveTask<Integer> {
     }
 
     private void collectLinks(Elements links) {
-
         for (Element element : links) {
             String url = element.absUrl("href");
             if (visitedInternalLink.contains(url) || HTMLDataFilter.skip(url, root) || !HTMLDataFilter.isInternalLink(url, root)) {
@@ -245,7 +238,6 @@ public class URLCollector extends RecursiveTask<Integer> {
             }
             urls.add(url);
             visitedInternalLink.add(url);
-
         }
     }
 
@@ -270,7 +262,6 @@ public class URLCollector extends RecursiveTask<Integer> {
             task.setSite(site);
             task.fork();
             tasks.add(task);
-
         }
     }
 

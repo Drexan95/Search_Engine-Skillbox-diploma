@@ -82,14 +82,12 @@ public class StatisticsInfo {
             site.setError(error);
             statistics.getDetailed().add(site);
         }
-
         total.setIndexing(isIndexing);
         total.setSites(sites);
         total.setLemmas(lemmas);
         total.setPages(pages);
         statistics.setTotal(total);
         statistics.getDetailed().addAll(detailed);
-
     }
 
     public Statistics getStatistics() {

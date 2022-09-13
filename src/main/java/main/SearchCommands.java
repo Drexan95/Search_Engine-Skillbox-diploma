@@ -38,7 +38,6 @@ public class SearchCommands {
      */
     public ResponseEntity<?> search(@RequestParam(name = "query") String query, @Nullable String site, @Nullable Integer limit, @Nullable Integer offset) throws SQLException, IOException, JSONException
     {
-
         SearchRequest request = new SearchRequestBuilder().setText(query)
                 .setSiteUrl(site)
                 .setLimit(limit)
@@ -50,7 +49,6 @@ public class SearchCommands {
             response.put("error","Индексация не завершена");
             return new ResponseEntity<>(response.toString(),HttpStatus.OK);
         }
-
         List<Page> results = pageResults.getResults(request);
 
         if(query.equals("")){

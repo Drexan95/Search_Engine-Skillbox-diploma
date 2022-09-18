@@ -67,7 +67,6 @@ public class IndexingCommands {
     @org.springframework.transaction.annotation.Transactional
     void start() throws SQLException, IOException, ParseException, StaleObjectStateException, InterruptedException
     {
-
         String query = "INSERT INTO site(id, last_error, name, status, status_time, url) VALUES(?, ? , ? , ? , ?, ?)";
         PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(query);
         Thread.sleep(1000);
@@ -92,9 +91,6 @@ public class IndexingCommands {
             collector.createCollector(site);
             tasks.add(collector);
         }
-
-
-
     }
 
     void indexing(List<URLCollector> collectors) throws SQLException {
@@ -155,25 +151,6 @@ public class IndexingCommands {
         Page page = new Page(url);
         JSONObject response = new JSONObject();
         Site pageSite = new Site();
-
-//        Site pageSite = new Site();
-//        JSONObject response = new JSONObject();
-//        String pageUrl = page.getPath();
-//        System.out.println(page.getPath());
-//        page.setPath("");
-//        for(Site site : sites){
-//            if (pageUrl.startsWith(site.getUrl())) {
-//                page.setSiteid(site.getId());
-//                page.setSite(site.getUrl());
-//                page.setSiteName(site.getName());
-//                pageSite.setId(site.getId());
-//                pageSite.setUrl(site.getUrl());
-//                pageSite.setStatus(site.getStatus());
-//                page.setPath(pageUrl);
-//            }
-//        }
-
-        //==========================================================================================================================================
         if(!isSiteIndexed(page,sites,pageSite)){
             try {
 
@@ -185,27 +162,16 @@ public class IndexingCommands {
                 ex.printStackTrace();
             }
         }
-//        else if(!pageSite.getStatus().equals(StatusType.INDEXED)){
-//            try {
-//
-//                response.put("result", false);
-//                response.put("error", "Индексация еще не завершена");
-//                return new ResponseEntity<>(response.toString(), HttpStatus.CONFLICT);
-//            } catch (JSONException ex){
-//                ex.printStackTrace();
-//            }
-//        }
         if(page.getPath().equals(pageSite.getUrl())){
             page.setPath(page.getPath()+"/");
         }
-        //==========================================================================================================================================
+        //======================================================================================================================================================================================
         Iterable<Page> pageIterable = pageRepository.findAll();
         Set<String> pages = Collections.synchronizedSet(new HashSet<>());
         URLCollector collector = new URLCollector();
         autowireCapableBeanFactory.autowireBean(collector);
         setDataToCollector(collector,page);
-
-
+        //Delete data from index
         pageIterable.forEach(p -> {
             if (p.getSiteid().equals(page.getSiteid()) && p.getPath().equals(page.getPath().split(pageSite.getUrl())[1])) {
                 searchIndexRepository.deleteSearchIndexes(p.getId());
@@ -216,17 +182,21 @@ public class IndexingCommands {
 
             }
         });
-        collector.setVisitedInternalLink(pages);
-        collector.createCollector(pageSite);
-        collector.setPath(page.getPath());
-        ForkJoinPool pool = new ForkJoinPool();
-        pool.execute(collector);
-        collector.collectFrequency();
-        pool.shutdown();
-        response.put("result",true);
-        return new ResponseEntity<>(response.toString(),HttpStatus.OK);
-    }
+      return   indexDataFromGivenPage(page,pageSite,pages);
 
+    }
+    //======================================================================================================================================================================================
+private ResponseEntity<String> indexDataFromGivenPage(Page page,Site pageSite,Set<String> pages) throws SQLException, IOException, JSONException {
+    collector.setVisitedInternalLink(pages);
+    collector.createCollector(pageSite);
+    collector.setPath(page.getPath());
+    ForkJoinPool pool = new ForkJoinPool();
+    pool.execute(collector);
+    collector.collectFrequency();
+    pool.shutdown();
+    return new ResponseEntity<>(new JSONObject().put("result",true).toString(),HttpStatus.OK);
+
+}
     private void setDataToCollector(URLCollector collector,Page page) throws SQLException {
         statement = DBConnection.getConnection().createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT MAX(id) as maxId from page");
@@ -244,7 +214,6 @@ public class IndexingCommands {
     }
     @org.springframework.transaction.annotation.Transactional
      void clearDB() throws SQLException {
-
                 Statement statement = DBConnection.getConnection().createStatement();
                 statement.executeUpdate("DELETE FROM site");
                 statement.executeUpdate("DELETE FROM page");
@@ -252,11 +221,9 @@ public class IndexingCommands {
                 statement.executeUpdate("DELETE FROM lemma");
                 statement.executeUpdate("DELETE FROM search_index");
                 statement.executeUpdate("ALTER TABLE search_index AUTO_INCREMENT=1");
-
             }
 
     private boolean isSiteIndexed(Page page, Iterable<Site> sites,Site pageSite){
-
         String pageUrl = page.getPath();
         System.out.println(page.getPath());
         page.setPath("");
@@ -274,7 +241,8 @@ public class IndexingCommands {
         return pageSite.getStatus().equals(StatusType.INDEXED) && !page.getPath().equals("");
     }
 
-    }
+}
+
 
 
 

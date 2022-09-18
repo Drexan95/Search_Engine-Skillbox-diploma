@@ -69,6 +69,7 @@ public class PageResults {
             }
         });
         Collections.sort(frequencyLemms);
+        System.out.println("кол-во слов в гетлеммс "+frequencyLemms.size());
         return frequencyLemms;
     }
 
@@ -84,36 +85,8 @@ public class PageResults {
     private List<Lemma> getListOfUrls(SearchRequest request) throws IOException, SQLException, NullPointerException {
         List<Lemma> frequencyLemms = getLemms(request);
         AtomicLong siteId = new AtomicLong();
-        int pageCount = 0;
-        if (!request.getSiteUrl().equals("")) {
-            String siteUrl = request.getSiteUrl();
-            Iterable<Site> siteIterable = siteRepository.findAll();
-            for (Site site : siteIterable) {
-                if (site.getUrl().equals(siteUrl)) {
-                    siteId.set(site.getId());
+        int pageCount = calculatePageCount(request,siteId);
 
-                }
-            }
-            ResultSet result = statement.executeQuery("SELECT COUNT(id) as page_count  FROM page where site_id= "+siteId.get());
-            while (result.next()) {
-                pageCount = result.getInt("page_count");
-            }
-
-
-        }
-
-        else {
-            ResultSet result = statement.executeQuery("SELECT COUNT(id) as page_count  FROM page");
-            while (result.next()) {
-                pageCount = result.getInt("page_count");
-            }
-        }
-
-        //=====================================================================================================================
-/**
- * Find pages where lemma appears
- *
- */
         String query = "SELECT page.id FROM page  JOIN search_index ON page.id = search_index.page_id JOIN lemma ON lemma.id = search_index.lemma_id " +
                 "WHERE lemma_id = ?";
         if (siteId.get() != 0) {
@@ -128,7 +101,6 @@ public class PageResults {
                     int id = resultSet.getInt("page.id");
                     Optional<Page> page = pageRepository.findById(id);
                     page.ifPresent(value -> lemma.getUrls().add(value));
-
                 }
             } catch (SQLException exception) {
                 exception.printStackTrace();
@@ -147,12 +119,9 @@ public class PageResults {
         } catch (ArithmeticException ae) {
             ae.printStackTrace();
         }
-
         System.out.println("кол-во слов "+frequencyLemms.size());
         return frequencyLemms;
     }
-
-//=====================================================================================================================================================================
 
     /**
      * Calculate absolute relevancy
@@ -173,6 +142,7 @@ public class PageResults {
         }
         String prepareSQl = " UNION ALL (SELECT SUM(search_index.rank) as lemmSum from search_index where page_id= %d and lemma_id = %d)";
         lemms.forEach(lemma -> {
+            System.out.println(lemma.getName());
             lemma.getUrls().forEach(page -> {
                 page.getLemms().add(lemma.getName());
                 StringBuilder sql = new StringBuilder("SELECT SUM(lemmSum) FROM((SELECT sum(search_index.rank) as lemmSum FROM search_index WHERE lemma_id = "
@@ -211,7 +181,6 @@ public class PageResults {
     //////////////////////////////////RANKS COLLECTED///////////////////////////////////////////////////////////////
     @Transactional
     public List<Page> getResults(SearchRequest request) {
-
         StringBuilder builder = new StringBuilder();
         List<Page> results = new ArrayList<>();
         try {
@@ -237,31 +206,8 @@ public class PageResults {
                 }
                 for (String lemma : page.getLemms()) {
                     String wordFromLemma = wordAndLemma.get(lemma);
-//                    Pattern pattern = Pattern.compile(wordAndLemma.get(lemma));
-//                    Matcher matcher = pattern.matcher(finalContent.toLowerCase(Locale.ROOT));
-//                    int lemmIndex = 0;
-//                    int lastLemmIndex = 0;
-//                    int textBorder = 0;
-//                    while (matcher.find()) {
-//                        lemmIndex = matcher.start();
-//                        lastLemmIndex = matcher.end();
-//                        textBorder = contentLentgh - lastLemmIndex;
-//                    }
-//
-//                    int numberOfChars = 100;
-//                    if (textBorder > numberOfChars) {
-//                        String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
-//                        builder.append("...<b>").append(word)
-//                                .append(finalContent, lastLemmIndex, lastLemmIndex + numberOfChars).append("...\n");
-//                    }
-//                    else { String word = finalContent.substring(lemmIndex,lastLemmIndex)+"</b>";
-//                        builder.append("...<b>").append(word)
-//                                .append(finalContent, lastLemmIndex, contentLentgh).append("...\n");
-//                    }
                     page.setSnippet(getSnippet(builder,finalContent,wordFromLemma));
                 }
-
-
                 builder.setLength(0);
                 results.add(page);
             });
@@ -305,6 +251,32 @@ public class PageResults {
      return builder.toString();
  }
 
+    private int calculatePageCount(SearchRequest request,AtomicLong siteId) throws SQLException {
+        int pageCount = 0;
+        if (!request.getSiteUrl().equals("")) {
+            String siteUrl = request.getSiteUrl();
+            Iterable<Site> siteIterable = siteRepository.findAll();
+            for (Site site : siteIterable) {
+                if (site.getUrl().equals(siteUrl)) {
+                    siteId.set(site.getId());
+
+                }
+            }
+
+            ResultSet result = statement.executeQuery("SELECT COUNT(id) as page_count  FROM page where site_id= "+siteId.get());
+            while (result.next()) {
+                pageCount = result.getInt("page_count");
+            }
+        }
+
+        else {
+            ResultSet result = statement.executeQuery("SELECT COUNT(id) as page_count  FROM page");
+            while (result.next()) {
+                pageCount = result.getInt("page_count");
+            }
+        }
+        return pageCount;
+    }
 
  }
 

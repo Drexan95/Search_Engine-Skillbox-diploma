@@ -63,15 +63,12 @@ public class ManagementCommands {
      */
 @Transactional
    public ResponseEntity<String> startIndexing() throws SQLException, IOException, ParseException, JSONException, InterruptedException, StaleObjectStateException {
-
      if(urls.length==0){
          JSONObject response = new JSONObject();
          response.put("result",false);
          response.put("error","В конфигурационном файле не передано ни одного сайта!");
          return new ResponseEntity<>(response.toString(),HttpStatus.OK);
-
      }
-
     Iterable<Site> sites = siteRepository.findAll();
         AtomicBoolean isIndexing = new AtomicBoolean(false);
         sites.forEach(site -> {
@@ -162,7 +159,7 @@ public class ManagementCommands {
             return response;
         } else
             response.put("result", false);
-        response.put("error", "индексация уже запущена");
+        response.put("error", "Индексация уже запущена");
         return response;
     }
 
@@ -174,7 +171,7 @@ public class ManagementCommands {
             return response;
         }
         else response.put("result",false);
-        response.put("error","индексация не запущена");
+        response.put("error","Индексация не запущена");
         return response;
     }
 

@@ -24,7 +24,7 @@ public class Lem  {
     public static ConcurrentHashMap<String,Integer> searchForLem(String text) throws IOException {
         ConcurrentHashMap<String,Integer> lems = new ConcurrentHashMap();
         String[] words = text.replaceAll("\\p{Punct}", " ")
-                .replaceAll("[^а-яА-Я\\s]+"," ")
+                .replaceAll("[^а-яА-Яё\\s]+"," ")
                 .toLowerCase().split("\\s");
 
         for (String word : words) {

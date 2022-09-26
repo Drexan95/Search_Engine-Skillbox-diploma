@@ -41,7 +41,7 @@ public class PageResults {
     final int RESULTS_TO_SHOW = 20;
 
 
-    private List<Lemma> getLemms(SearchRequest request) throws IOException {
+    private Set<Lemma> getLemms(SearchRequest request) throws IOException {
         maxResults=0;
         try {
             Lem.createMorph();
@@ -50,7 +50,10 @@ public class PageResults {
             ex.printStackTrace();
         }
         Map<String, Integer> lemms = new ConcurrentHashMap<>(Lem.searchForLem(request.getText()));
-        List<Lemma> frequencyLemms = new ArrayList<>();//List of lemmas to find
+       for(String lemma : lemms.keySet()){
+           System.out.println("лемма в леммс "+ lemma);
+       }
+        Set<Lemma> frequencyLemms = new HashSet<>();//List of lemmas to find
 
         /**
          * Find lemmas in database
@@ -68,8 +71,11 @@ public class PageResults {
                 System.out.println("Совпадения  не найдены");
             }
         });
-        Collections.sort(frequencyLemms);
-        System.out.println("кол-во слов в гетлеммс "+frequencyLemms.size());
+//        frequencyLemms = frequencyLemms.stream().distinct().collect(Collectors.toList());
+//        Collections.sort(frequencyLemms);
+        for(Lemma lemma : frequencyLemms){
+            System.out.println(lemma);
+        }
         return frequencyLemms;
     }
 
@@ -83,7 +89,7 @@ public class PageResults {
      */
     @Transactional
     private List<Lemma> getListOfUrls(SearchRequest request) throws IOException, SQLException, NullPointerException {
-        List<Lemma> frequencyLemms = getLemms(request);
+        List<Lemma> frequencyLemms = new ArrayList<>(getLemms(request));
         AtomicLong siteId = new AtomicLong();
         int pageCount = calculatePageCount(request,siteId);
 
@@ -142,7 +148,6 @@ public class PageResults {
         }
         String prepareSQl = " UNION ALL (SELECT SUM(search_index.rank) as lemmSum from search_index where page_id= %d and lemma_id = %d)";
         lemms.forEach(lemma -> {
-            System.out.println(lemma.getName());
             lemma.getUrls().forEach(page -> {
                 page.getLemms().add(lemma.getName());
                 StringBuilder sql = new StringBuilder("SELECT SUM(lemmSum) FROM((SELECT sum(search_index.rank) as lemmSum FROM search_index WHERE lemma_id = "

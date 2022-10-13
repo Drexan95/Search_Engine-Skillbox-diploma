@@ -41,7 +41,7 @@ public class PageResults {
     final int RESULTS_TO_SHOW = 20;
 
 
-    private Set<Lemma> getLemms(SearchRequest request) throws IOException {
+    private List<Lemma> getLemms(SearchRequest request) throws IOException {
         maxResults=0;
         try {
             Lem.createMorph();
@@ -53,16 +53,17 @@ public class PageResults {
        for(String lemma : lemms.keySet()){
            System.out.println("лемма в леммс "+ lemma);
        }
-        Set<Lemma> frequencyLemms = new HashSet<>();//List of lemmas to find
+        List<Lemma> frequencyLemms = new ArrayList<>();//List of lemmas to find
 
         /**
          * Find lemmas in database
          */
         lemms.keySet().forEach(word -> {
             try {
-                ResultSet resultSet = statement.executeQuery("SELECT id FROM lemma WHERE lemma.lemma = " + '\'' + word + '\'');
+                ResultSet resultSet = statement.executeQuery("SELECT id FROM lemma WHERE lemma.lemma = " + '\"' + word + '\"');
                 while (resultSet.next()) {
                     int id = resultSet.getInt("id");
+                    System.out.println(id);
                     Optional<Lemma> lemma = lemmaRepository.findById(id);
                     lemma.ifPresent(frequencyLemms::add);
                 }
@@ -97,6 +98,7 @@ public class PageResults {
                 "WHERE lemma_id = ?";
         if (siteId.get() != 0) {
             query = query + " AND page.site_id =" + siteId.get();
+            frequencyLemms.removeIf(lemma -> !lemma.getSiteId().equals(siteId.get()));
         }
         PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(query);
         frequencyLemms.forEach(lemma -> {
@@ -111,6 +113,7 @@ public class PageResults {
             } catch (SQLException exception) {
                 exception.printStackTrace();
             }
+            System.out.println("Кол-во страниц где есть лемма "+lemma +" : "+lemma.getUrls().size());
         });
 
         int finalPageCount = pageCount;  //Don't consider lemma if it appears in more than 80% of the pages

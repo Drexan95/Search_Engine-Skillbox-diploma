@@ -14,7 +14,7 @@ Morphology Library,
 Lombok.
 
 __SpringBoot app Search engine scan the sites given in application.yml file using ForkJoinPool,
-collect text from html files and extracts lemmas from it using morphology library and store in MySQL database
+collect text from html files and extracts lemmas from it using morphology library and store in MySQL database.
 RestControllers provides interface to search pages by query request,application calculates relevancy  and return sorted pages with small snippet of text where words occur._
 _API also provides opportunity to set limit of the results, offset the results and choose specific website.__
 
@@ -81,5 +81,33 @@ public class HTMLDataFilter
 ____
 :three:  The **search results** looks likes this:
 ![img_3.png](img_3.png)
+ 
+ # API Specification
+
+**GET** /startIndexing 
+ Starts indexing sites given in application.yml file. API returns error if indexing is already running.
+ <details>
+<summary>JSON</summary>
+{
+	'result': true
+}
+`If already running`
+{
+	'result': false,
+	'error': "Indexing is running already"
+}
+</details>
+
+**GET** /stopIndexing
+Stops indexing.
+**POST** /indexPage/{url}
+Starts index/reindex webpage given in parameter.URL must be related to the domen names given in application.yml.
+**GET** /statistics
+Returns info about indexed sites.
+
+
+
+
+
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo file count](https://img.shields.io/github/directory-file-count/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo size](https://img.shields.io/github/repo-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub language count](https://img.shields.io/github/languages/count/Drexan95/Search_Engine-Skillbox-diploma)
  

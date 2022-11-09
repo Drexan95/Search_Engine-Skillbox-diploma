@@ -88,14 +88,18 @@ ____
  Starts indexing sites given in application.yml file. API returns error if indexing is already running.
  <details>
 <summary>JSON</summary>
+
 {
 	'result': true
 }
+
 `If already running`
+
 {
 	'result': false,
 	'error': "Indexing is running already"
 }
+
 </details>
 
 **GET** /stopIndexing

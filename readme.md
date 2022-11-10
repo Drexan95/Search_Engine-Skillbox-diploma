@@ -164,12 +164,16 @@ Returns info about indexed sites.
 ]
 }
 </details>
+
 **GET** /search{query}?{site}?{limit}?{offset}
+
 ***Parameters***:
+
 + query - search query.
 + site - site to search(if not set, engine going through all sites); site url format : http://www.site.com (without "/" at the end).
 + offset - skip N results to show(if not set show all results based on calculated relevancy).
 + limit - number of pages to show(if not set default number is 20).
++ 
 <details>
 <summary>JSON</summary>
 {
@@ -188,7 +192,7 @@ Returns info about indexed sites.
 ...
 ]
 }
-
-
+	
+</details>
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo file count](https://img.shields.io/github/directory-file-count/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo size](https://img.shields.io/github/repo-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub language count](https://img.shields.io/github/languages/count/Drexan95/Search_Engine-Skillbox-diploma)
  

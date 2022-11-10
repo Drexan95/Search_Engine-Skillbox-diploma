@@ -78,6 +78,7 @@ public class HTMLDataFilter
     }
 }
 ```
+
 ____
 :three:  The **search results** looks likes this:
 ![img_3.png](img_3.png)
@@ -87,7 +88,7 @@ ____
 **GET** /startIndexing - 
  *Starts indexing sites given in application.yml file. API returns error if indexing is already running.*
  <details>
-<summary>JSON</summary> :hourglass:
+<summary>JSON</summary> 
 
 {
 	'result': true
@@ -99,14 +100,15 @@ ____
 	'result': false,
 	'error': "Indexing is running already"
 }
+ 
+</details> :hourglass:
 
-</details>
 ____
 
 **GET** /stopIndexing - 
 *Stops indexing.*
 <details>
-<summary>JSON</summary> :x:
+<summary>JSON</summary> 
 {
 'result': true
 }
@@ -116,14 +118,15 @@ ____
 'result': false,
 'error': "Indexing is not running"
 }
-</details>
+</details> :x:
+
 ____
 
 
 **POST** /indexPage?{url} - 
 *Starts index/reindex webpage given in parameter.URL must be related to the domen names given in application.yml.*
 <details>
-<summary>JSON</summary> :new:
+<summary>JSON</summary> 
 {
 'result': true
 }
@@ -134,13 +137,14 @@ ____
 'result': false,
 'error': "Webpage is outside of the sites given in application.yml"
 }
-</details>
+</details> :new:
+
 ____
 
 **GET** /statistics - 
 *Returns info about indexed sites.*
 <details>
-<summary>JSON</summary> :bar_chart:
+<summary>JSON</summary> 
 {
 'result': true,
 'statistics': {
@@ -164,8 +168,10 @@ ____
 ...
 ]
 }
-</details>
+</details> :bar_chart:
+
 ____
+
 **GET** /search?{query}&{site}&{limit}&{offset} - method execute search based on query given in parameter
 
 ***Parameters***:
@@ -176,7 +182,7 @@ ____
 + limit - number of pages to show(if not set default number is 20).
 
 <details>
-<summary>JSON</summary> :tada:
+<summary>JSON</summary> 
 {
 'result': true,
 
@@ -194,8 +200,10 @@ ____
 ]
 }
 	
-</details>
+</details> :tada:
+
 ____
+
 
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo file count](https://img.shields.io/github/directory-file-count/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo size](https://img.shields.io/github/repo-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub language count](https://img.shields.io/github/languages/count/Drexan95/Search_Engine-Skillbox-diploma)
  

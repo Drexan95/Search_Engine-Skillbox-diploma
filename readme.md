@@ -87,7 +87,7 @@ ____
 
 **GET** /startIndexing - 
  *Starts indexing sites given in application.yml file. API returns error if indexing is already running.*
- <details>
+:hourglass: <details>
 <summary>JSON</summary> 
 
 {
@@ -101,13 +101,13 @@ ____
 	'error': "Indexing is running already"
 }
  
-</details> :hourglass:
+</details> 
 
 ____
 
 **GET** /stopIndexing - 
 *Stops indexing.*
-<details>
+:x: <details>
 <summary>JSON</summary> 
 {
 'result': true
@@ -118,14 +118,14 @@ ____
 'result': false,
 'error': "Indexing is not running"
 }
-</details> :x:
+</details> 
 
 ____
 
 
 **POST** /indexPage?{url} - 
 *Starts index/reindex webpage given in parameter.URL must be related to the domen names given in application.yml.*
-<details>
+:new: <details>
 <summary>JSON</summary> 
 {
 'result': true
@@ -137,13 +137,13 @@ ____
 'result': false,
 'error': "Webpage is outside of the sites given in application.yml"
 }
-</details> :new:
+</details> 
 
 ____
 
 **GET** /statistics - 
 *Returns info about indexed sites.*
-<details>
+:bar_chart: <details>
 <summary>JSON</summary> 
 {
 'result': true,
@@ -168,7 +168,7 @@ ____
 ...
 ]
 }
-</details> :bar_chart:
+</details> 
 
 ____
 
@@ -181,7 +181,7 @@ ____
 + offset - skip N results to show(if not set show all results based on calculated relevancy).
 + limit - number of pages to show(if not set default number is 20).
 
-<details>
+:tada: <details>
 <summary>JSON</summary> 
 {
 'result': true,
@@ -200,7 +200,7 @@ ____
 ]
 }
 	
-</details> :tada:
+</details> 
 
 ____
 

@@ -84,10 +84,10 @@ ____
  
  # API Specification
 
-**GET** /startIndexing 
- Starts indexing sites given in application.yml file. API returns error if indexing is already running.
+**GET** /startIndexing - 
+ *Starts indexing sites given in application.yml file. API returns error if indexing is already running.*
  <details>
-<summary>JSON</summary>
+<summary>JSON</summary> :hourglass:
 
 {
 	'result': true
@@ -101,11 +101,12 @@ ____
 }
 
 </details>
+____
 
-**GET** /stopIndexing
-Stops indexing.
+**GET** /stopIndexing - 
+*Stops indexing.*
 <details>
-<summary>JSON</summary>
+<summary>JSON</summary> :x:
 {
 'result': true
 }
@@ -116,13 +117,13 @@ Stops indexing.
 'error': "Indexing is not running"
 }
 </details>
+____
 
 
-
-**POST** /indexPage/{url}
-Starts index/reindex webpage given in parameter.URL must be related to the domen names given in application.yml.
+**POST** /indexPage?{url} - 
+*Starts index/reindex webpage given in parameter.URL must be related to the domen names given in application.yml.*
 <details>
-<summary>JSON</summary>
+<summary>JSON</summary> :new:
 {
 'result': true
 }
@@ -134,12 +135,12 @@ Starts index/reindex webpage given in parameter.URL must be related to the domen
 'error': "Webpage is outside of the sites given in application.yml"
 }
 </details>
+____
 
-
-**GET** /statistics
-Returns info about indexed sites.
+**GET** /statistics - 
+*Returns info about indexed sites.*
 <details>
-<summary>JSON</summary>
+<summary>JSON</summary> :bar_chart:
 {
 'result': true,
 'statistics': {
@@ -154,7 +155,7 @@ Returns info about indexed sites.
 "url": "http://www.site.com",
 "name": "Site name",
 "status": "INDEXED",
-5
+
 "statusTime": 1600160357,
 "error": "Indexing error: the main page is unavaible.",
 "pages": 5764,
@@ -164,8 +165,8 @@ Returns info about indexed sites.
 ]
 }
 </details>
-
-**GET** /search{query}?{site}?{limit}?{offset}
+____
+**GET** /search?{query}&{site}&{limit}&{offset} - method execute search based on query given in parameter
 
 ***Parameters***:
 
@@ -173,9 +174,9 @@ Returns info about indexed sites.
 + site - site to search(if not set, engine going through all sites); site url format : http://www.site.com (without "/" at the end).
 + offset - skip N results to show(if not set show all results based on calculated relevancy).
 + limit - number of pages to show(if not set default number is 20).
-+ 
+
 <details>
-<summary>JSON</summary>
+<summary>JSON</summary> :tada:
 {
 'result': true,
 
@@ -194,7 +195,7 @@ Returns info about indexed sites.
 }
 	
 </details>
-
+____
 
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo file count](https://img.shields.io/github/directory-file-count/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub repo size](https://img.shields.io/github/repo-size/Drexan95/Search_Engine-Skillbox-diploma) ![GitHub language count](https://img.shields.io/github/languages/count/Drexan95/Search_Engine-Skillbox-diploma)
  

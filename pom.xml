@@ -33,7 +33,7 @@
                     <version>2.5.3</version>
                     <configuration>
                         <includeSystemScope>true</includeSystemScope>
-                        <mainClass>main.Main</mainClass>
+                        <mainClass>main.service.Main</mainClass>
                     </configuration>
 <!--                    <executions>-->
 <!--                        <execution>-->
@@ -67,7 +67,7 @@
                             <manifest>
 
                                 <!-- give full qualified name of your main class-->
-                                <mainClass>main.Main</mainClass>
+                                <mainClass>main.service.Main</mainClass>
 
                             </manifest>
                         </archive>
@@ -81,7 +81,7 @@
                     <configuration>
                         <archive>
                             <manifest>
-                                <mainClass>main.Main</mainClass>
+                                <mainClass>main.service.Main</mainClass>
                             </manifest>
                         </archive>
                         <descriptorRefs>

@@ -1,13 +1,11 @@
-package main;
+package service;
 
-import UrlService.HTMLDataFilter;
-import main.controllers.DefaultController;
-import main.controllers.PageController;
-import main.controllers.SiteController;
+import controllers.DefaultController;
+import controllers.PageController;
+import controllers.SiteController;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -16,19 +14,21 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 
-@SpringBootApplication(scanBasePackages = {"resources.static", "main.model"})
-@EnableJpaRepositories
+@SpringBootApplication(scanBasePackages = {"resources.static", "model", "service", "repository"})
+@EnableJpaRepositories(basePackages = {"repository"})
 @EnableConfigurationProperties()
 @ComponentScan(basePackageClasses = {PageController.class,
         SiteController.class,
         DefaultController.class,
-        UrlService.URLCollector.class,
-        HTMLDataFilter.class,
-        main.ManagementCommands.class})
+        service.URLCollector.class,
+        service.HTMLDataFilter.class,
+        service.ManagementCommands.class})
+@ComponentScan(basePackages = {"model","service"})
+@EntityScan(basePackages = {"model"})
 public class Main {
 
     public static void main(String[] args) throws SQLException, IOException {
-        SpringApplication.run(Main.class, args);
+        SpringApplication.run(service.Main.class, args);
     }
 
 }

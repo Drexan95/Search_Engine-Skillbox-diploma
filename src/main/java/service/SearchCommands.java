@@ -1,9 +1,9 @@
-package main;
+package service;
 
-import main.model.Page;
-import main.model.Site;
-import main.model.StatusType;
-import main.repository.SiteRepository;
+import model.Page;
+import model.Site;
+import model.StatusType;
+import repository.SiteRepository;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;

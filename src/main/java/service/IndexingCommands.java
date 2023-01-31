@@ -1,13 +1,12 @@
-package main;
+package service;
 
 import Database.DBConnection;
-import UrlService.URLCollector;
 import lombok.Getter;
-import main.model.Lemma;
-import main.model.Page;
-import main.model.Site;
-import main.model.StatusType;
-import main.repository.*;
+import model.Lemma;
+import model.Page;
+import model.Site;
+import model.StatusType;
+import repository.*;
 import org.hibernate.StaleObjectStateException;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class IndexingCommands {
@@ -64,6 +64,7 @@ public class IndexingCommands {
     private final  HashSet<Site> sites = new HashSet<>();
     private Site site;
 
+
     @org.springframework.transaction.annotation.Transactional
     void start() throws SQLException, IOException, ParseException, StaleObjectStateException, InterruptedException
     {
@@ -96,12 +97,10 @@ public class IndexingCommands {
     void indexing(List<URLCollector> collectors) throws SQLException {
         Long start = System.currentTimeMillis();
         collectors.forEach(collector -> {
-
                 threads.add(new Thread(){
                     @Override
                     public void run() {
                         try {
-
                             Thread.sleep(1000);
                             ForkJoinPool pool = new ForkJoinPool();
                             pools.add(pool);
@@ -145,22 +144,13 @@ public class IndexingCommands {
      */
 
     @Transactional
-    public ResponseEntity<String> addPage(@RequestParam(name = "url") String url) throws SQLException, IOException, JSONException
-    {
+    public ResponseEntity<String> addPage(@RequestParam(name = "url") String url) throws SQLException, IOException, JSONException, InterruptedException {
         Iterable<Site> sites = siteRepository.findAll();
         Page page = new Page(url);
-        JSONObject response = new JSONObject();
+
         Site pageSite = new Site();
         if(!isSiteIndexed(page,sites,pageSite)){
-            try {
-
-                response.put("result", false);
-                response.put("error", "Данная страница находится за пределами сайтов, указанных в конфигурационном файле или индексация сайта еще не завершена");
-                return new ResponseEntity<>(response.toString(),HttpStatus.BAD_REQUEST);
-            }
-            catch (JSONException ex){
-                ex.printStackTrace();
-            }
+        sendError();
         }
         if(page.getPath().equals(pageSite.getUrl())){
             page.setPath(page.getPath()+"/");
@@ -182,36 +172,69 @@ public class IndexingCommands {
 
             }
         });
-      return   indexDataFromGivenPage(page,pageSite,pages);
-
+        collector.setVisitedInternalLink(pages);
+        collector.createCollector(pageSite);
+        collector.setPath(page.getPath());
+        ForkJoinPool pool = new ForkJoinPool();
+        pool.execute(collector);
+        collector.collectFrequency();
+        pool.shutdown();
+        return new ResponseEntity<>(new JSONObject().put("result",true).toString(),HttpStatus.OK);
+//      return   indexDataFromGivenPage(page,pageSite,pages);
     }
     //======================================================================================================================================================================================
-private ResponseEntity<String> indexDataFromGivenPage(Page page,Site pageSite,Set<String> pages) throws SQLException, IOException, JSONException {
-    collector.setVisitedInternalLink(pages);
-    collector.createCollector(pageSite);
-    collector.setPath(page.getPath());
-    ForkJoinPool pool = new ForkJoinPool();
-    pool.execute(collector);
-    collector.collectFrequency();
-    pool.shutdown();
-    return new ResponseEntity<>(new JSONObject().put("result",true).toString(),HttpStatus.OK);
-
-}
-    private void setDataToCollector(URLCollector collector,Page page) throws SQLException {
+//private ResponseEntity<String> indexDataFromGivenPage(Page page,Site pageSite,Set<String> pages) throws SQLException, IOException, JSONException {
+//    collector.setVisitedInternalLink(pages);
+//    collector.createCollector(pageSite);
+//    collector.setPath(page.getPath());
+//    ForkJoinPool pool = new ForkJoinPool();
+//    pool.execute(collector);
+//    collector.collectFrequency();
+//    pool.shutdown();
+//    return new ResponseEntity<>(new JSONObject().put("result",true).toString(),HttpStatus.OK);
+//}
+    private void setDataToCollector(URLCollector collector,Page page) throws SQLException, InterruptedException {
         statement = DBConnection.getConnection().createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT MAX(id) as maxId from page");
         while (resultSet.next()){
             page.setId(resultSet.getInt("maxId")+1);
+            System.out.println("посл айди страницы "+ resultSet.getInt("maxId"));
             collector.getPageId().set(page.getId()-1);
         }
-        Iterable<Lemma> lemmaIterable = lemmaRepository.findAll();
+        statement.close();
+ Statement maxIDStatement = DBConnection.getConnection().createStatement();
+ ResultSet resultSetMaxLemmaId = maxIDStatement.executeQuery("SELECT MAX(id) as maxId from search_engine.lemma");
+         int maxLemmaId = 0;
+        if (resultSetMaxLemmaId.next()){
+           maxLemmaId = resultSetMaxLemmaId.getInt("maxId");
+        }
+        System.out.println("последнее ID леммы " + maxLemmaId);
+
+        for(int i =1;i<=maxLemmaId;i++){
+
+        Optional<Lemma> lemma =    lemmaRepository.findById(i);
+        if (lemma.isPresent()){
+            collector.getLemmaIds().putIfAbsent(lemma.get().getName(), lemma.get().getId());
+            collector.getFrequency().putIfAbsent(lemma.get().getName(), lemma.get().getFrequency());
+         }
+
+        }
+        maxIDStatement.close();
+//        lemmaRepository.findAll().forEach(lemma ->{
+//            collector.getLemmaIds().put(lemma.getName(), lemma.getId());
+//            collector.getFrequency().put(lemma.getName(), lemma.getFrequency());
+//        } );
+//
+
         collector.getLemmaId().set((int) lemmaRepository.count());
         collector.getFieldId().set((int) fieldRepository.count());
-        lemmaIterable.forEach(lemma -> {
-            collector.getLemmaIds().put(lemma.getName(), lemma.getId());
-            collector.getFrequency().put(lemma.getName(), lemma.getFrequency());
-        });
+//        lemmaIterable.forEach(lemma -> {
+//            collector.getLemmaIds().put(lemma.getName(), lemma.getId());
+//            collector.getFrequency().put(lemma.getName(), lemma.getFrequency());
+//        });
+        System.out.println("Кол-во лемм в коллекторе " + collector.getLemmaIds().size()+ "\n" +"Кол-во лемм с частотой в коллекторе "+collector.getFrequency().size());
     }
+
     @org.springframework.transaction.annotation.Transactional
      void clearDB() throws SQLException {
                 Statement statement = DBConnection.getConnection().createStatement();
@@ -241,6 +264,17 @@ private ResponseEntity<String> indexDataFromGivenPage(Page page,Site pageSite,Se
         return pageSite.getStatus().equals(StatusType.INDEXED) && !page.getPath().equals("");
     }
 
+    private ResponseEntity sendError(){
+        JSONObject response = new JSONObject();
+        try {
+            response.put("result", false);
+            response.put("error", "Данная страница находится за пределами сайтов, указанных в конфигурационном файле или индексация сайта еще не завершена");
+        }
+        catch (JSONException ex){
+            ex.printStackTrace();
+        }
+        return new ResponseEntity<>(response.toString(),HttpStatus.BAD_REQUEST);
+    }
 }
 
 

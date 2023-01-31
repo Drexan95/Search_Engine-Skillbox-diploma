@@ -1,13 +1,12 @@
-package main;
+package service;
 
 import Database.DBConnection;
 import Lemmatizer.Lem;
-import UrlService.HTMLDataFilter;
 import lombok.Getter;
-import main.model.*;
-import main.repository.LemmaRepository;
-import main.repository.PageRepository;
-import main.repository.SiteRepository;
+import model.*;
+import repository.LemmaRepository;
+import repository.PageRepository;
+import repository.SiteRepository;
 import one.util.streamex.StreamEx;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,11 +71,6 @@ public class PageResults {
                 System.out.println("Совпадения  не найдены");
             }
         });
-//        frequencyLemms = frequencyLemms.stream().distinct().collect(Collectors.toList());
-//        Collections.sort(frequencyLemms);
-        for(Lemma lemma : frequencyLemms){
-            System.out.println(lemma);
-        }
         return frequencyLemms;
     }
 
@@ -100,26 +94,11 @@ public class PageResults {
             query = query + " AND page.site_id =" + siteId.get();
             frequencyLemms.removeIf(lemma -> !lemma.getSiteId().equals(siteId.get()));
         }
-        PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(query);
-        frequencyLemms.forEach(lemma -> {
-            try {
-                preparedStatement.setInt(1, lemma.getId());
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while (resultSet.next()) {
-                    int id = resultSet.getInt("page.id");
-                    Optional<Page> page = pageRepository.findById(id);
-                    page.ifPresent(value -> lemma.getUrls().add(value));
-                }
-            } catch (SQLException exception) {
-                exception.printStackTrace();
-            }
-            System.out.println("Кол-во страниц где есть лемма "+lemma +" : "+lemma.getUrls().size());
-        });
+        linkLemmaAndPage(frequencyLemms,query);
 
         int finalPageCount = pageCount;  //Don't consider lemma if it appears in more than 80% of the pages
         try {
             frequencyLemms.removeIf(lemma -> frequencyLemms.size() > 1 && 100 / (finalPageCount / lemma.getUrls().size()) > 80 && frequencyLemms.indexOf(lemma) > 0);
-
             if (frequencyLemms.size() > 1) {
                 frequencyLemms.stream().sorted().skip(1)
                         .forEach(lemma -> lemma.getUrls().subList(lemma.getUrls().size() - (int) ((lemma.getUrls().size() * 10L) / 100), lemma.getUrls().size()).clear()
@@ -132,6 +111,22 @@ public class PageResults {
         return frequencyLemms;
     }
 
+private void linkLemmaAndPage(List<Lemma> frequencyLemms,String query) throws SQLException {
+    PreparedStatement preparedStatement = DBConnection.getConnection().prepareStatement(query);
+    frequencyLemms.forEach(lemma -> {
+        try {
+            preparedStatement.setInt(1, lemma.getId());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                int id = resultSet.getInt("page.id");
+                Optional<Page> page = pageRepository.findById(id);
+                page.ifPresent(value -> lemma.getUrls().add(value));
+            }
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    });
+}
     /**
      * Calculate absolute relevancy
      * method calculates the relevance of pages upon request
@@ -170,21 +165,19 @@ public class PageResults {
 
             });
         });
-        //=============================================================================================================================================================
-
-        /**
-         * Calculate relevancy
-         */
-        pageAndRelevancy.keySet().forEach(page -> {
-            page.setRelevance(page.getAbsRelevancy() / Collections.max(pageAndRelevancy.values()));
-            sortedPages.add(page);
-
-        });
-        maxResults = sortedPages.size();
-        System.out.println("кол-во страниц "+sortedPages.size());
-        return StreamEx.of(sortedPages).distinct(Page::getPath).sorted().toList();
+       return   sortPages(pageAndRelevancy);
     }
 
+private List<Page> sortPages(ConcurrentHashMap<Page,Float> pageAndRelevancy){
+    List<Page> sortedPages = new ArrayList<>();
+    pageAndRelevancy.keySet().forEach(page -> {
+        page.setRelevance(page.getAbsRelevancy() / Collections.max(pageAndRelevancy.values()));
+        sortedPages.add(page);
+
+    });
+    maxResults = sortedPages.size();
+    return StreamEx.of(sortedPages).distinct(Page::getPath).sorted().toList();
+}
 
     //////////////////////////////////RANKS COLLECTED///////////////////////////////////////////////////////////////
     @Transactional
@@ -205,7 +198,6 @@ public class PageResults {
                 }
                 HashMap<String, String> wordAndLemma = null;
                 content = HTMLDataFilter.findText(content);
-//                int contentLentgh = content.length();
                 String finalContent = content;
                 try {
                     wordAndLemma = Lem.replaceForLemms(content);
@@ -222,15 +214,20 @@ public class PageResults {
         } catch (SQLException | IOException ex) {
             ex.printStackTrace();
         }
-        if (request.getLimit() !=0) {
-            return results.stream().skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
-        }
-        else {
-            return results.stream().skip(request.getOffset()).limit(RESULTS_TO_SHOW).collect(Collectors.toList()); //Page results containing calculated relevancy
-        }
+         return results.stream().skip(request.getOffset()).limit(countResults(request.getLimit())).collect(Collectors.toList());
+
     }
 
 //==============================================================================================================================================================
+    private int countResults(int requestCount){
+        if (requestCount >= RESULTS_TO_SHOW){
+            return requestCount;
+        }
+        else {
+        int x = RESULTS_TO_SHOW - requestCount;
+        return RESULTS_TO_SHOW - x;
+        }
+    }
  private String getSnippet(StringBuilder builder, String finalContent,String wordFromLemma){
      Pattern pattern = Pattern.compile(wordFromLemma);
      Matcher matcher = pattern.matcher(finalContent.toLowerCase(Locale.ROOT));

@@ -1,7 +1,7 @@
-package main.controllers;
+package controllers;
 
-import main.ManagementCommands;
-import main.model.StatisticsInfo;
+import service.ManagementCommands;
+import model.StatisticsInfo;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 

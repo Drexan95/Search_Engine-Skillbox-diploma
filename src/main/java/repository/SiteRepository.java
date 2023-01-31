@@ -1,6 +1,6 @@
-package main.repository;
+package repository;
 
-import main.model.Site;
+import model.Site;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

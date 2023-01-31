@@ -1,11 +1,11 @@
-package UrlService;
+package service;
 
 import Database.DBConnection;
 import Lemmatizer.Lem;
 import lombok.Getter;
 import lombok.Setter;
-import main.model.*;
-import main.repository.*;
+import model.*;
+import repository.*;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -36,6 +36,10 @@ public class URLCollector extends RecursiveTask<Integer> {
     private String root;
     @Getter
     private  Page page = null;
+    private Elements fields;
+    private Elements links;
+    private int code;
+    private String content;
 
     @Autowired
     @Getter
@@ -109,9 +113,7 @@ public class URLCollector extends RecursiveTask<Integer> {
 
 
     }
-
-    @Override
-    protected Integer compute() {
+    private void connectToPage() throws IOException, InterruptedException {
         try {
             Connection.Response response;
             response = Jsoup.connect(path).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) VEGASearchBot/1.0.0 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36")
@@ -119,60 +121,75 @@ public class URLCollector extends RecursiveTask<Integer> {
                     .execute();
             Document doc = response.parse();
             Thread.sleep(2000);
-            Elements fields = doc.select("html > *");
-            Elements links = doc.select("a[abs:href^=" + path + "]");
-            int code = response.statusCode();
-            String content = doc.toString();
+            fields = doc.select("html > *");
+            links = doc.select("a[abs:href^=" + path + "]");
+            code = response.statusCode();
+            content = doc.toString();
+        }
+        catch (IOException | InterruptedException | NullPointerException exception) {
+            exception.printStackTrace();
+            site.setError("Ошибка! Страница сайта недоступна \\n"+exception.getMessage());
+        }
+    }
+
+
+
+    @Override
+    protected Integer compute() {
+        try {
+            connectToPage();
 //======================================PAGES================================================//
             /**
              * Pages
              */
-            synchronized (pageId) {
-                pageId.getAndIncrement();
-                path = path.split(root)[1];
-                page = new Page(pageId.get(), path, code, content);
-                thisPageId = page.getId();
-                addPage(page);
-                try {//update time after each page
-                    Optional<Site> optionalSite = siteRepository.findById(site.getId());
-                    if (optionalSite.isPresent()) {
-                        optionalSite.get().setStatusTime(simpleDateFormat.parse(simpleDateFormat.format(new Date())));
-                        siteRepository.save(optionalSite.get());
-                    }
-//
-                } catch (ParseException exception) {
-                    exception.printStackTrace();
-                    site.setError("Ошибка! Страница сайта недоступна \\n"+exception.getMessage());
-                }
-            }
+            indexPage();
+//            synchronized (pageId) {
+//                pageId.getAndIncrement();
+//                path = path.split(root)[1];
+//                page = new Page(pageId.get(), path, code, content);
+//                thisPageId = page.getId();
+//                addPage(page);
+//                try {//update time after each page
+//                    Optional<Site> optionalSite = siteRepository.findById(site.getId());
+//                    if (optionalSite.isPresent()) {
+//                        optionalSite.get().setStatusTime(simpleDateFormat.parse(simpleDateFormat.format(new Date())));
+//                        siteRepository.save(optionalSite.get());
+//                    }
+////
+//                } catch (ParseException exception) {
+//                    exception.printStackTrace();
+//                    site.setError("Ошибка! Страница сайта недоступна \\n"+exception.getMessage());
+//                }
+//            }
 //======================================HTML Elements================================================//
-            for (Element field : fields) {
-                Elements pageElements = field.getAllElements();
-                Element element;
-                for (int i = 0; i < pageElements.size(); i++) {
-                    element = pageElements.get(i);
-
-                    String text = HTMLDataFilter.findText(element.toString());
-                    if (HTMLDataFilter.elementIsRedundant(element, text) || code == 204) {
-                        element.remove();
-                        continue;
-                    }
-
-                    //==================================FIELDS==========================================//
-
-                    float fieldWeight = HTMLDataFilter.calculateFieldWeight(element);
-                    /**
-                     * Fields
-                     */
-                    synchronized (fieldId) {
-                        fieldId.getAndIncrement();
-                        addField(fieldId.get(), element.tagName(), element.cssSelector(), fieldWeight);
-                    }
-                    //==================================RANKS AND LEMMS==============================================//
-                    ConcurrentHashMap<String, Integer> finalFieldLems = new ConcurrentHashMap<>(Lem.searchForLem(text));
-                    collectRanksAndLemmsFromField(finalFieldLems, fieldWeight);
-                }
-            }
+//            for (Element field : fields) {
+//                Elements pageElements = field.getAllElements();
+//                Element element;
+//                for (int i = 0; i < pageElements.size(); i++) {
+//                    element = pageElements.get(i);
+//
+//                    String text = HTMLDataFilter.findText(element.toString());
+//                    if (HTMLDataFilter.elementIsRedundant(element, text) || code == 204) {
+//                        element.remove();
+//                        continue;
+//                    }
+//
+//                    //==================================FIELDS==========================================//
+//
+//                    float fieldWeight = HTMLDataFilter.calculateFieldWeight(element);
+//                    /**
+//                     * Fields
+//                     */
+//                    synchronized (fieldId) {
+//                        fieldId.getAndIncrement();
+//                        addField(fieldId.get(), element.tagName(), element.cssSelector(), fieldWeight);
+//                    }
+//                    //==================================RANKS AND LEMMS==============================================//
+//                    ConcurrentHashMap<String, Integer> finalFieldLems = new ConcurrentHashMap<>(Lem.searchForLem(text));
+//                    collectRanksAndLemmsFromField(finalFieldLems, fieldWeight);
+//                }
+//            }
+            indexField();
 
             /**
              * Index
@@ -300,6 +317,55 @@ public class URLCollector extends RecursiveTask<Integer> {
 
     }
     //==========================================================================================================================================================//
+    private void indexPage(){
+        synchronized (pageId) {
+            pageId.getAndIncrement();
+            path = path.split(root)[1];
+            page = new Page(pageId.get(), path, code, content);
+            thisPageId = page.getId();
+            addPage(page);
+            try {//update time after each page
+                Optional<Site> optionalSite = siteRepository.findById(site.getId());
+                if (optionalSite.isPresent()) {
+                    optionalSite.get().setStatusTime(simpleDateFormat.parse(simpleDateFormat.format(new Date())));
+                    siteRepository.save(optionalSite.get());
+                }
+//
+            } catch (ParseException exception) {
+                exception.printStackTrace();
+                site.setError("Ошибка! Страница сайта недоступна \\n"+exception.getMessage());
+            }
+        }
+    }
+    private void indexField() throws IOException {
+        for (Element field : fields) {
+            Elements pageElements = field.getAllElements();
+            Element element;
+            for (int i = 0; i < pageElements.size(); i++) {
+                element = pageElements.get(i);
+
+                String text = HTMLDataFilter.findText(element.toString());
+                if (HTMLDataFilter.elementIsRedundant(element, text) || code == 204) {
+                    element.remove();
+                    continue;
+                }
+
+                //==================================FIELDS==========================================//
+
+                float fieldWeight = HTMLDataFilter.calculateFieldWeight(element);
+                /**
+                 * Fields
+                 */
+                synchronized (fieldId) {
+                    fieldId.getAndIncrement();
+                    addField(fieldId.get(), element.tagName(), element.cssSelector(), fieldWeight);
+                }
+                //==================================RANKS AND LEMMS==============================================//
+                ConcurrentHashMap<String, Integer> finalFieldLems = new ConcurrentHashMap<>(Lem.searchForLem(text));
+                collectRanksAndLemmsFromField(finalFieldLems, fieldWeight);
+            }
+        }
+    }
 
 
 }

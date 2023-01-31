@@ -1,12 +1,12 @@
-package main.model;
+package model;
 
 import Database.DBConnection;
 import lombok.Getter;
 import lombok.Setter;
-import main.repository.FieldRepository;
-import main.repository.LemmaRepository;
-import main.repository.PageRepository;
-import main.repository.SiteRepository;
+import repository.FieldRepository;
+import repository.LemmaRepository;
+import repository.PageRepository;
+import repository.SiteRepository;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

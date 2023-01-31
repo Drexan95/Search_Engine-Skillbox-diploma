@@ -1,4 +1,4 @@
-package UrlService;
+package service;
 
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;

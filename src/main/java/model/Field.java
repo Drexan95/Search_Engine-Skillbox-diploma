@@ -1,4 +1,4 @@
-package main.model;
+package model;
 
 import org.hibernate.annotations.Type;
 

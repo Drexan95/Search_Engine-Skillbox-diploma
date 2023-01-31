@@ -1,12 +1,11 @@
-package main;
+package service;
 
 
-import UrlService.URLCollector;
-import main.model.Site;
-import main.model.Statistics;
-import main.model.StatisticsInfo;
-import main.model.StatusType;
-import main.repository.*;
+import model.Site;
+import model.Statistics;
+import model.StatisticsInfo;
+import model.StatusType;
+import repository.*;
 import org.hibernate.StaleObjectStateException;
 import org.json.JSONException;
 import org.json.JSONObject;

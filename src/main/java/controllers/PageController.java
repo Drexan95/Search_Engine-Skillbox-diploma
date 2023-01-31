@@ -1,8 +1,8 @@
-package main.controllers;
+package controllers;
 
-import main.IndexingCommands;
-import main.ManagementCommands;
-import main.SearchCommands;
+import service.IndexingCommands;
+import service.ManagementCommands;
+import service.SearchCommands;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -47,8 +47,7 @@ public class PageController {
      */
     @Transactional
     @PostMapping("/indexPage")
-    public ResponseEntity<String> addPage(@RequestParam(name = "url") String url) throws SQLException, IOException, JSONException
-    {
+    public ResponseEntity<String> addPage(@RequestParam(name = "url") String url) throws SQLException, IOException, JSONException, InterruptedException {
         return indexingCommands.addPage(url);
 
     }

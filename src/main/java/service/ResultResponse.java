@@ -1,8 +1,8 @@
-package main;
+package service;
 
 import lombok.Getter;
 import lombok.Setter;
-import main.model.Page;
+import model.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

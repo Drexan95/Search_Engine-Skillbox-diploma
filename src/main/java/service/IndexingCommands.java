@@ -180,19 +180,10 @@ public class IndexingCommands {
         collector.collectFrequency();
         pool.shutdown();
         return new ResponseEntity<>(new JSONObject().put("result",true).toString(),HttpStatus.OK);
-//      return   indexDataFromGivenPage(page,pageSite,pages);
+
     }
     //======================================================================================================================================================================================
-//private ResponseEntity<String> indexDataFromGivenPage(Page page,Site pageSite,Set<String> pages) throws SQLException, IOException, JSONException {
-//    collector.setVisitedInternalLink(pages);
-//    collector.createCollector(pageSite);
-//    collector.setPath(page.getPath());
-//    ForkJoinPool pool = new ForkJoinPool();
-//    pool.execute(collector);
-//    collector.collectFrequency();
-//    pool.shutdown();
-//    return new ResponseEntity<>(new JSONObject().put("result",true).toString(),HttpStatus.OK);
-//}
+
     private void setDataToCollector(URLCollector collector,Page page) throws SQLException, InterruptedException {
         statement = DBConnection.getConnection().createStatement();
         ResultSet resultSet = statement.executeQuery("SELECT MAX(id) as maxId from page");
